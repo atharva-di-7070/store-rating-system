@@ -20,11 +20,11 @@ app.use(cors());
 app.use(express.json());
 
 // ==========================================
-// Public Route
+// Health Check
 // ==========================================
 
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     message: "Store Rating API is running",
   });
 });
@@ -51,26 +51,18 @@ app.use("/api/user", userRoutes);
 // Store Owner
 // ==========================================
 
-app.use(
-  "/api/store-owner",
-  storeOwnerRoutes
-);
+app.use("/api/store-owner", storeOwnerRoutes);
 
 // ==========================================
 // Protected Test
 // ==========================================
 
-app.get(
-  "/api/protected",
-  authMiddleware,
-  (req, res) => {
-    res.json({
-      message:
-        "You can access this protected route",
-      user: req.user,
-    });
-  }
-);
+app.get("/api/protected", authMiddleware, (req, res) => {
+  res.json({
+    message: "You can access this protected route",
+    user: req.user,
+  });
+});
 
 // ==========================================
 // USER Test
@@ -82,8 +74,7 @@ app.get(
   roleMiddleware("USER"),
   (req, res) => {
     res.json({
-      message:
-        "Normal User access granted",
+      message: "Normal User access granted",
       user: req.user,
     });
   }
@@ -99,8 +90,7 @@ app.get(
   roleMiddleware("ADMIN"),
   (req, res) => {
     res.json({
-      message:
-        "Admin access granted",
+      message: "Admin access granted",
       user: req.user,
     });
   }
@@ -116,8 +106,7 @@ app.get(
   roleMiddleware("STORE_OWNER"),
   (req, res) => {
     res.json({
-      message:
-        "Store Owner access granted",
+      message: "Store Owner access granted",
       user: req.user,
     });
   }
@@ -137,25 +126,28 @@ app.use((req, res) => {
 // Error Handler
 // ==========================================
 
-app.use(
-  (err, req, res, next) => {
-    console.error(err);
+app.use((err, req, res, next) => {
+  console.error("SERVER ERROR:", err);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-);
-
-// ==========================================
-// Start Server
-// ==========================================
-
-const PORT =
-  process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT}`
-  );
+  res.status(500).json({
+    message: "Internal server error",
+  });
 });
+
+// ==========================================
+// Vercel Export
+// ==========================================
+
+export default app;
+
+// ==========================================
+// Local Development
+// ==========================================
+
+if (process.env.VERCEL !== "1") {
+  const PORT = process.env.PORT || 5000;
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
